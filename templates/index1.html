@@ -19,9 +19,62 @@
     <script>
         document.getElementById('chat-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const userInput = document.getElementById('user-input').value;
+
+            const userInput = document.getElementById('user-input').value.trim();
             if (!userInput) return;
 
-            // Отображаем сообщение пользователя
             const chatBox = document.getElementById('chat-box');
-            chatBox.innerHTML += `<p><strong>Вы:</strong
+
+            // Отображаем сообщение пользователя
+            chatBox.innerHTML += `
+                <div class="message user-message">
+                    <strong>Вы:</strong> ${userInput}
+                </div>
+            `;
+
+            // Очистка поля ввода
+            document.getElementById('user-input').value = '';
+
+            // Добавляем индикатор загрузки
+            const loadingMessage = document.createElement('div');
+            loadingMessage.className = 'message ai-message loading';
+            loadingMessage.innerHTML = '<strong>ИИ:</strong> Обрабатываю запрос...';
+            chatBox.appendChild(loadingMessage);
+
+            try {
+                // Отправляем запрос на сервер
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: userInput })
+                });
+
+                const data = await response.json();
+
+                // Удаляем индикатор загрузки
+                chatBox.removeChild(loadingMessage);
+
+                // Отображаем ответ ИИ
+                chatBox.innerHTML += `
+                    <div class="message ai-message">
+                        <strong>ИИ:</strong> ${data.response.replace(/\n/g, '<br>')}
+                    </div>
+                `;
+
+                // Прокручиваем чат вниз
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch (error) {
+                // Удаляем индикатор загрузки
+                chatBox.removeChild(loadingMessage);
+
+                // Отображаем сообщение об ошибке
+                chatBox.innerHTML += `
+                    <div class="message error-message">
+                        Ошибка: ${error.message}
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
