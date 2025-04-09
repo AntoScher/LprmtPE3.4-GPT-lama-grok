@@ -9,8 +9,18 @@ from google.auth.transport.requests import Request
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import sys
+import logging
 
-# Настройка вывода для корректного отображения символов Unicode
+# Настройка логирования (отладочная информация будет записываться в файл debug.log)
+logging.basicConfig(
+    filename='debug.log',
+    filemode='a',
+    level=logging.INFO,
+    encoding='utf-8',
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+# Настройка вывода для корректного отображения символов Unicode (если используется)
 sys.stdout.reconfigure(encoding='utf-8')
 
 # Загружаем переменные окружения
@@ -114,15 +124,16 @@ def start_chat():
 def confirm_appointment():
     confirmation = request.form["confirmation"]
     if confirmation == "yes":
-        doctor_text = session["doctor_response"]
+        doctor_text = session.get("doctor_response", "")
 
-        # Предобработка строки для безопасного вывода отладочной информации
+        # Пытаемся подготовить строку для отладки и записываем её в лог
         try:
             safe_doctor_text = doctor_text.encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding)
-        except Exception:
+        except Exception as e:
             safe_doctor_text = "Ошибка преобразования строки для отладки"
+            logging.error("Ошибка преобразования строки: %s", e)
 
-        print("Doctor response for debugging:", safe_doctor_text)
+        logging.info("Doctor response for debugging: %s", safe_doctor_text)
 
         try:
             # Ожидаем, что ответ от модели теперь в формате JSON.
@@ -145,7 +156,7 @@ def confirm_appointment():
             message = (f"Запись к {doc_type} на {date_str} в {time_str} оформлена. "
                        f"<a href='{calendar_link}' target='_blank'>Ссылка на событие в Google Calendar</a>")
         except (json.JSONDecodeError, ValueError) as e:
-            print("Parsing error:", e)
+            logging.error("Parsing error: %s", e)
             message = "Ошибка парсинга ответа Доктора. Попробуйте ещё раз."
     else:
         message = "Запись отменена. Если нужна повторная консультация, перезагрузите страницу."
