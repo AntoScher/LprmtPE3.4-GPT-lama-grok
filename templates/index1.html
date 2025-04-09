@@ -24,13 +24,4 @@
 
             // Отображаем сообщение пользователя
             const chatBox = document.getElementById('chat-box');
-            chatBox.innerHTML += `<p><strong>Вы:</strong> ${userInput}</p>`;
-
-            // Отправляем запрос к DeepSeek API
-            const response = await fetch('/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ message: userInput })
-            });
+            chatBox.innerHTML += `<p><strong>Вы:</strong
