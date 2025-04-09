@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Doctor Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>ИИ-Ассистент Doctor</h1>
+    <form action="/start" method="post">
+        <label>Ваше имя:</label><br>
+        <input type="text" name="patient_name" required><br><br>
+        <label>Опишите симптомы:</label><br>
+        <textarea name="symptoms" rows="4" required></textarea><br><br>
+        <button type="submit">Начать консультацию</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Консультация</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Консультация</h1>
+    <p><b>Пациент:</b> {{ patient_name }}</p>
+    <p><b>Симптомы:</b> {{ symptoms }}</p>
+    <h2>Рекомендация Доктора:</h2>
+    <p style="background: #f0f0f0; padding: 10px; border-radius: 5px;">
+        {{ doctor_response | replace("\n", "<br>") | safe }}
+    </p>
+    <form action="/confirm" method="post">
+        <p>Подтверждаете запись?</p>
+        <input type="radio" name="confirmation" value="yes" id="yes">
+        <label for="yes">Да, подтверждаю</label><br>
+        <input type="radio" name="confirmation" value="no" id="no">
+        <label for="no">Нет, не подтверждаю</label><br><br>
+        <button type="submit">Отправить</button>
+    </form>
+</body>
+</html>

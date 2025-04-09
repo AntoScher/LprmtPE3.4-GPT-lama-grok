@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div id="chatbox">
+        <div id="messages">
+            <div class="ai">Здравствуйте. Вы обратились в систему записи к врачу. Сообщите ваше Имя и опишите симптомы.</div>
+        </div>
+        <input type="text" id="user-input" placeholder="Введите сообщение...">
+        <button onclick="sendMessage()">Отправить</button>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById("user-input");
+            const message = input.value;
+            if (!message) return;
+
+            const messages = document.getElementById("messages");
+            messages.innerHTML += `<div class="user">${message}</div>`;
+            input.value = "";
+
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message })
+            });
+
+            const data = await response.json();
+            if (data.reply) {
+                messages.innerHTML += `<div class="ai">${data.reply}</div>`;
+            } else {
+                messages.innerHTML += `<div class="ai">Ошибка: ${data.error}</div>`;
+            }
+
+            messages.scrollTop = messages.scrollHeight;
+        }
+    </script>
+</body>
+</html>
