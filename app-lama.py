@@ -20,7 +20,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-# Настройка вывода для корректного отображения символов Unicode (если используется)
+# Настройка вывода для корректного отображения символов Unicode
 sys.stdout.reconfigure(encoding='utf-8')
 
 # Загружаем переменные окружения
@@ -41,6 +41,23 @@ CALENDAR_ID = os.getenv("CALENDAR_ID", "primary")
 # Загружаем системный промпт из файла
 with open("prompt-doctor.txt", "r", encoding="utf-8") as f:
     SYSTEM_PROMPT = f.read()
+
+
+def clean_doctor_response(response_text):
+    """
+    Удаляет обрамление Markdown (например, тройные обратные кавычки) из ответа, если они имеются.
+    """
+    response_text = response_text.strip()
+    if response_text.startswith("```"):
+        lines = response_text.splitlines()
+        # Если первая строка содержит "```json" или "```", убираем её
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        # Если последняя строка — тройные обратные кавычки, убираем её
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        response_text = "\n".join(lines).strip()
+    return response_text
 
 
 # Авторизация Google Calendar с использованием token.json
@@ -125,19 +142,16 @@ def confirm_appointment():
     confirmation = request.form["confirmation"]
     if confirmation == "yes":
         doctor_text = session.get("doctor_response", "")
+        # Запись исходного ответа в лог для отладки
+        logging.info("Original Doctor response: %s", doctor_text)
 
-        # Пытаемся подготовить строку для отладки и записываем её в лог
-        try:
-            safe_doctor_text = doctor_text.encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding)
-        except Exception as e:
-            safe_doctor_text = "Ошибка преобразования строки для отладки"
-            logging.error("Ошибка преобразования строки: %s", e)
-
-        logging.info("Doctor response for debugging: %s", safe_doctor_text)
+        # Очистка Markdown-обрамления, если оно присутствует
+        doctor_text_cleaned = clean_doctor_response(doctor_text)
+        logging.info("Cleaned Doctor response: %s", doctor_text_cleaned)
 
         try:
-            # Ожидаем, что ответ от модели теперь в формате JSON.
-            doctor_data = json.loads(doctor_text)
+            # Пробуем распарсить очищенную строку как JSON
+            doctor_data = json.loads(doctor_text_cleaned)
             doc_type = doctor_data.get("doc_type")
             date_str = doctor_data.get("date")
             time_str = doctor_data.get("time")
